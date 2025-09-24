@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title>VisualMimic</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Video Gallery Styles -->
+    <style>
+        /* Video Gallery Section Styles */
+        .video-gallery-section {
+            margin-bottom: 40px;
+            width: 100vw;
+            position: relative;
+            margin-left: calc((100% - 100vw) / 2);
+            box-sizing: border-box;
+        }
+
+        .video-gallery-container {
+            box-sizing: border-box;
+            max-width: 1150px;
+            margin-left: auto;
+            margin-right: auto;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+
+        .video-gallery-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .video-gallery {
+            display: flex;
+            gap: 5px;
+            padding: 0 20px;
+            padding-bottom: 5px;
+            box-sizing: border-box;
+            width: max-content;
+            margin: 0 auto;
+        }
+
+        .gallery-video-container {
+            position: relative;
+            flex: 0 0 auto;
+            height: 220px;
+            width: auto;
+            border-radius: 15px;
+            box-sizing: border-box;
+            background-color: #fdfaf4;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .gallery-video {
+            height: 100%;
+            width: auto;
+            border-radius: 15px;
+            display: block;
+        }
+
+        /* Navigation buttons styling */
+        .gallery-nav {
+            background-color: rgba(40, 40, 40, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .gallery-nav.left {
+            left: 50%;
+            margin-left: -575px; /* Half of max-width (1150px) + some padding */
+        }
+
+        .gallery-nav.right {
+            right: 50%;
+            margin-right: -575px; /* Half of max-width (1150px) + some padding */
+        }
+
+        .gallery-nav:hover {
+            background-color: rgba(0, 0, 0, 1);
+        }
+
+        .gallery-nav-controls {
+            display: none; /* Hide the old container since buttons are now positioned absolutely */
+        }
+
+        .gallery-caption-container {
+            max-width: 960px;
+            margin: 15px auto 0 auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .figure-caption.gallery-caption {
+            margin-bottom: 0;
+            margin-top: 0;
+            text-align: center;
+            flex-grow: 1;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Day/Night mode toggle (top-right) */
+        .mode-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1100;
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Source Sans 3', sans-serif;
+        }
+        .mode-toggle button {
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 6px 8px;
+        }
+        .mode-toggle i {
+            font-size: 24px;
+            line-height: 1;
+        }
+    </style>
+
+    <link rel="icon" type="image/png" sizes="512x512" href="images/logo.png">
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:url" content="https://visualmimic.github.io"/>
+    <meta property="og:title" content="VisualMimic"/>
+    <meta property="og:description" content="Visual Humanoid Loco-Manipulation via Motion Tracking and Generation"/>
+
+    <!-- twitter card -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="VisualMimic"/>
+    <meta name="twitter:description"
+          content="Visual Humanoid Loco-Manipulation via Motion Tracking and Generation"/>
+    <meta name="twitter:creator" content="@Shaofeng_Yin"/>
+
+    <!-- extra metadata for Slack unfurls -->
+    <!--    <meta name="twitter:label1" content="Published at"/>-->
+    <!--    <meta name="twitter:data1" content="RSS 2024"/>-->
+    <!--    <meta name="twitter:label2" content="Reading time"/>-->
+    <!--    <meta name="twitter:data2" content="10 minutes"/>-->
+
+    <!-- extra metadata — unknown support -->
+    <meta property="og:type" content="article"/>
+    <meta property="article:section" content="Research"/>
+    <meta property="article:tag" content="Robotics"/>
+    <meta property="article:tag" content="Machine Learning"/>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</head>
+<body>
+
+<div class="full-page-image" id="teaser">
+    <div class="mode-toggle" aria-label="Video mode selector">
+        <button id="modeToggleBtn" title="Switch to Night">
+            <i id="modeToggleIcon" class="fas fa-sun"></i>
+        </button>
+        <button id="visualToggleBtn" title="Enable Visual Overlay">
+            <i id="visualToggleIcon" class="fas fa-eye-slash"></i>
+        </button>
+    </div>
+    <div id="video_grid_1" class="video_grid">
+        <div class="video_large_1 video_container">
+            <div class="loading-spinner"></div>
+            <video id="teaserVideo" autoplay muted playsinline>
+                <source id="teaserSource" src="" type="video/mp4">
+            </video>
+        </div>
+    </div>
+    <div class="video-overlay">
+        <h1 style="font-size: 6vw;">VisualMimic</h1>
+        <h2 style="font-size: 2vw;">Visual Humanoid Loco-Manipulation via Motion Tracking and Generation</h2>
+        
+        <!-- <h3><b>Disclaimer:</b> All videos are <b><a href="https://en.wikipedia.org/wiki/Teleoperation" style="color: white;">teleoperation</a></b></h3> -->
+        <div class="button-container">
+            <a href="http://arxiv.org/abs/2505.02833" target="_blank" class="button">
+                <i class="fas fa-file-alt"></i> arXiv
+            </a>
+            <a href="2026_arXiv_VisualMimic.pdf" target="_blank" class="button">
+                <i class="fas fa-file-pdf"></i> Paper
+            </a>
+            <a href="https://github.com/operator22th/VisualMimic" target="_blank" class="button">
+                <i class="fab fa-github"></i> Code
+            </a>
+            <a href="https://x.com/ZeYanjie/status/1919779536461561860" target="_blank" class="button">
+                <i class="fab fa-x-twitter"></i> Twitter
+            </a>
+            <a href="https://youtu.be/NlFwV7G5u2A?si=1a0aTp25H2MRLCCE" target="_blank" class="button">
+                <i class="fab fa-youtube"></i> YouTube
+            </a>
+            <a href="" target="_blank" class="button">
+                <i class="fab fa-bilibili"></i> Bilibili
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="title_left">
+
+    <div class="task-row-abs">
+        <div class="task-column-3">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <div class="publication-video">
+                        <iframe src="https://www.youtube.com/embed/NlFwV7G5u2A?autoplay=1&mute=1&modestbranding=1&rel=0&showinfo=0&controls=1&disablekb=1&fs=1&iv_load_policy=3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-4">
+            <div class="abstract">
+
+                <h3 style="text-align: center;">VisualMimic Team</h3>
+
+    
+                <div class="team-container">
+                    <!-- First Row: Shaofeng and Yanjie -->
+                    <div class="team-row">
+                        <div class="team-member">
+                            <a href="https://operator22th.github.io" target="_blank">
+                                <img src="images/shaofeng2.jpg" alt="Shaofeng Yin" loading="lazy">
+                                <div class="member-name">Shaofeng Yin<sup>*</sup></div>
+                            </a>
+                        </div>
+
+                        <div class="team-member">
+                            <a href="https://yanjieze.com" target="_blank">
+                                <img src="images/yanjie.jpg" alt="Yanjie Ze" loading="lazy">
+                                <div class="member-name">Yanjie Ze<sup>*</sup></div>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Second Row: Koven, Karen, and Jiajun -->
+                    <div class="team-row">
+                        <div class="team-member">
+                            <a href="https://kovenyu.com" target="_blank">
+                                <img src="images/koven.jpg" alt="Hong-Xing Yu" loading="lazy">
+                                <div class="member-name">Hong-Xing Yu</div>
+                            </a>
+                        </div>
+
+                        <div class="team-member">
+                            <a href="https://tml.stanford.edu/" target="_blank">
+                                <img src="images/karen.png" alt="C. Karen Liu" loading="lazy">
+                                <div class="member-name">C. Karen Liu<sup>†</sup></div>
+                            </a>
+                        </div>
+
+                        <div class="team-member">
+                            <a href="https://jiajunwu.com/" target="_blank">
+                                <img src="images/jiajun.jpg" alt="Jiajun Wu" loading="lazy">
+                                <div class="member-name">Jiajun Wu<sup>†</sup></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="affiliation-notes">
+                    <p><sup>*</sup>Equal contribution&nbsp;&nbsp;&nbsp;&nbsp;<sup>†</sup>Equal advising</p>
+                </div>
+                <p style="text-align: center;">
+                    <img src="images/affliation.png" alt="logo" class="centered-image" width="100%">
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    
+    <!-- <div class="affiliation">
+        <p style="text-align: center;">
+            <img src="images/affliation.png" alt="logo" class="centered-image" width="40%">
+        </p>
+    </div> -->
+</div>
+
+
+
+<div id="overview">
+
+    
+    <h1>VisualMimic enables *generalizable* visuomotor skills across time & space.</h1>
+
+    <div class="task-row">
+       
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Morning</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_dawn.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Dusk</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_dusk.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Evening</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_night.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Midnight</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="task-row">
+       
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_hover2.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-small">Hover Tower</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_scene_2.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-small">Engineering Building</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_scene_3.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-small">Robotics Center</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-25">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_corridor2.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-small">Memorial Church</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h1>VisualMimic enables humanoid loco-manipulation with *whole-body dexterity*.</h1>
+
+
+    <div class="task-row">
+       
+        <!-- <div class="task-column-2">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/push_box_vis.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Push Box</div>
+                </div>
+            </div>
+        </div> -->
+        <div class="task-column-2">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/kick_box_vis.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Kick Box</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-2">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/kick_ball_vis_2.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Kick Ball</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-2">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/real/lift_box_vis.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Lift Box</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+
+    <!-- <h1>VisualMimic enables whole-body dexterity.</h1> -->
+    <div class="task-row">
+        <div class="task-column-2">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/sim/wholebody/push_box_lie_down_near.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Push Box with Feet and Hands</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-2">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/sim/wholebody/push_box_shoulder.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Push Box with Shoulder</div>
+                </div>
+            </div>
+        </div>
+        <div class="task-column-2">
+            <div class="video_container_wrapper1">
+                <div class="video_container">
+                    <video class="content-video" muted playsinline autoplay loop preload="none">
+                        <source src="videos/sim/wholebody/push_box_two_hand_near.mp4" type="video/mp4">
+                    </video>
+                    <div class="overlay-clean">Push Box with Two Hands</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="rounded" style="margin-top: 20px; margin-bottom: 20px;">
+
+    <h1>VisualMimic Framework</h1>
+    <div class="method-figure" style="text-align:center; margin: 16px 0;">
+        <img src="images/method_v15.png" alt="Method" style="max-width:60.77%; height:auto;">
+    </div>
+
+
+    <h1 id="analysis">Unveiling Key Designs in VisualMimic</h1>
+    <div class="video-gallery-section" id="analysisGallerySection">
+      <div class="video-gallery-container">
+        <!-- Interface Design -->
+        <h2 id="interface_design">Interface Design for High-Level/Low-Level Communication</h2>
+        <div class="video-gallery" id="videoGalleryInterface">
+          <div class="gallery-video-container">
+              <video class="gallery-video" src="videos/analysis_v2/balance.mp4" autoplay muted playsinline loop></video>
+              <div class="overlay-clean">VisualMimic</div>
+          </div>
+          <div class="gallery-video-container">
+              <video class="gallery-video" src="videos/analysis_v2/balance_3_points.mp4" autoplay muted playsinline loop></video>
+              <div class="overlay-clean">VisualMimic w/ 3 Keypoints Only</div>
+          </div>
+        </div>
+
+        <!-- Training Pipeline: Kick Box -->
+        <h2 id="training_pipeline">Training Low-Level Tracker with Teacher-Student Distillation</h2>
+        <div class="video-gallery" id="videoGalleryKickBox">
+          <div class="gallery-video-container">
+              <video class="gallery-video" src="videos/analysis_v2/kick_box_mask.mp4" autoplay muted playsinline loop></video>
+              <div class="overlay-clean">VisualMimic</div>
+          </div>
+          <div class="gallery-video-container">
+              <video class="gallery-video" src="videos/analysis_v2/kick_box_no_distill.mp4" autoplay muted playsinline loop></video>
+              <div class="overlay-clean">VisualMimic w/o Distillation</div>
+          </div>
+        </div>
+
+        <!-- Training Pipeline: Drib Ball -->
+        <div class="video-gallery" id="videoGalleryDribBall">
+          <div class="gallery-video-container">
+              <video class="gallery-video" src="videos/analysis_v2/drib_ball.mp4" autoplay muted playsinline loop></video>
+              <div class="overlay-clean">VisualMimic</div>
+          </div>
+          <div class="gallery-video-container">
+              <video class="gallery-video" src="videos/analysis_v2/drib_ball_no_distill.mp4" autoplay muted playsinline loop></video>
+              <div class="overlay-clean">VisualMimic w/o Distillation</div>
+          </div>
+        </div>
+
+      </div>
+      <div style="text-align: center;">
+      For more details, please refer to our <a href="https://arxiv.org/abs/2505.02833" target="_blank">arXiv</a>.
+      </div>
+    </div>
+   
+
+    <h1 id="sim_results">More Results</h1>
+    <h2 id="sim_results_vision">Diverse Simulation Tasks with Vision</h2>
+    <div class="video-gallery-section" id="simGallerySection">
+    <div class="video-gallery-container">
+        <div class="video-gallery" id="videoGallerySim">
+            <!-- 第一行 -->
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/push_box_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Push Box</div>
+            </div>
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/kick_box_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Kick Box</div>
+            </div>
+
+            <!-- 第二行 -->
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/kick_ball_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Drib Ball</div>
+            </div>
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/lift_box_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Lift Box</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <button class="gallery-nav left" id="scrollLeftBtnSim">&lt;</button>
+    <button class="gallery-nav right" id="scrollRightBtnSim">&gt;</button>
+</div>
+<div class="video-gallery-section" id="simGallerySection2">
+    <div class="video-gallery-container">
+        <div class="video-gallery" id="videoGallerySim2">
+             <!-- 第三行 -->
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/push_cube_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Push Cube</div>
+            </div>
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/large_kick_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Large Kick</div>
+            </div>
+
+            <!-- 第四行 -->
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/reach_box_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Reach Box</div>
+            </div>
+            <div class="gallery-video-container">
+                <video class="gallery-video" src="videos/sim_vis/balance_ball_vis.mp4" autoplay muted playsinline loop></video>
+                <div class="overlay-clean">Balance Ball</div>
+            </div>
+            </div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <button class="gallery-nav left" id="scrollLeftBtnSim2">&lt;</button>
+    <button class="gallery-nav right" id="scrollRightBtnSim2">&gt;</button>
+</div>
+
+<h2 id="more_real_world_results">Real-World Results</h2>
+    <div class="video-gallery-section" id="moreRealResultsGallerySection">
+        <div class="video-gallery-container">
+            <div class="video-gallery" id="videoGalleryMoreRealResults">
+                <div class="gallery-video-container">
+                    <video class="gallery-video" src="videos/real/lift_box.mov" autoplay muted playsinline loop></video>
+                    <div class="overlay-clean">Lift Box 2 (Recover from Failure)</div>
+                </div>
+                <div class="gallery-video-container">
+                    <video class="gallery-video" src="videos/real/kick_box_2.mov" autoplay muted playsinline loop></video>
+                    <div class="overlay-clean">Kick Box 2 (Gentle)</div>
+                </div>
+                <div class="gallery-video-container">
+                    <video class="gallery-video" src="videos/real/kick_ball_fail.mov" autoplay muted playsinline loop></video>
+                    <div class="overlay-clean">Drib Ball 2 (Foot Collide with Gantry)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <button class="gallery-nav left" id="scrollLeftBtnMoreRealResults">&lt;</button>
+        <button class="gallery-nav right" id="scrollRightBtnMoreRealResults">&gt;</button>
+    </div>
+
+
+    <h1 id="sim2sim_results">Sim2Sim Results</h1>
+        <div class="video-gallery-section" id="sim2simGallerySection">
+        <div class="video-gallery-container">
+            <div class="video-gallery" id="videoGallerySim2Sim">
+                <div class="gallery-video-container">
+                    <video class="gallery-video" src="videos/sim2sim/kick_ball_sim2sim.mp4" autoplay muted playsinline loop></video>
+                    <div class="overlay-bottom-left">Kick Ball</div>
+                </div>  
+                <div class="gallery-video-container">
+                    <video class="gallery-video" src="videos/sim2sim/lift_box_sim2sim.mp4" autoplay muted playsinline loop></video>
+                    <div class="overlay-bottom-left">Lift Box</div>
+                </div>
+                <div class="gallery-video-container">
+                    <video class="gallery-video" src="videos/sim2sim/push_box_sim2sim.mp4" autoplay muted playsinline loop></video>
+                    <div class="overlay-bottom-left">Push Box</div>
+                </div>
+                <div class="gallery-video-container">
+                    <video class="gallery-video" src="videos/sim2sim/kick_box_sim2sim.mp4" autoplay muted playsinline loop></video>
+                    <div class="overlay-bottom-left">Kick Box</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <button class="gallery-nav left" id="scrollLeftBtnSim2Sim">&lt;</button>
+        <button class="gallery-nav right" id="scrollRightBtnSim2Sim">&gt;</button>
+    </div>
+
+
+    <hr class="rounded">
+
+    <h1 id="related">Related Work</h1>
+
+    <div class="related-paper">
+        <div class="related-paper-video">
+            <video src="videos/twist.mp4" autoplay muted loop playsinline></video>
+        </div>
+        <div class="related-paper-content">
+            <div class="related-paper-title">
+                <a href="https://yanjieze.com/TWIST/" target="_blank">TWIST: Teleoperated Whole-Body Imitation System</a>
+            </div>
+            <div class="related-paper-authors">Yanjie Ze<sup>*</sup>, Zixuan Chen<sup>*</sup>, João Pedro Araújo<sup>*</sup>, Zi-ang Cao, Xue Bin Peng, Jiajun Wu<sup>†</sup>, C. Karen Liu<sup>†</sup></div>
+            <div class="related-paper-links">
+                <b>CoRL 2025</b> /
+                <a href="https://arxiv.org/abs/2505.02833" target="_blank">arXiv</a> /
+                <a href="https://yanjieze.com/TWIST/" target="_blank">Project Page</a> /
+                <a href="https://github.com/YanjieZe/TWIST" target="_blank">Code</a>
+            </div>
+        </div>
+    </div>
+    <div class="related-paper">
+        <div class="related-paper-image">
+            <img src="images/idp3_2.gif" alt="Paper 1 Thumbnail">
+        </div>
+        <div class="related-paper-content">
+            <div class="related-paper-title">
+                <a href="https://humanoid-manipulation.github.io" target="_blank">Generalizable Humanoid Manipulation with 3D Diffusion Policies</a>
+            </div>
+            <div class="related-paper-authors">Yanjie Ze, Zixuan Chen, Wenhao Wang, Tianyi Chen, Xialin He, Ying Yuan, Xue Bin Peng, Jiajun Wu</div>
+            <div class="related-paper-links">
+                <b>IROS 2025</b> /
+                <a href="https://arxiv.org/abs/2410.10803" target="_blank">arXiv</a> /
+                <a href="https://humanoid-manipulation.github.io" target="_blank">Project Page</a> /
+                <a href="https://github.com/YanjieZe/Improved-3D-Diffusion-Policy" target="_blank">Code (learning)</a> /
+                <a href="https://github.com/YanjieZe/Humanoid-Teleoperation" target="_blank">Code (teleop)</a>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <h1 id="acknowledgements">Acknowledgements</h1>
+    <p>
+        We would like to thank all members of the CogAI group and The Movement Lab from Stanford University for their support. We also thank the Stanford Robotics Center for providing the experiment space. This work is in part supported by Stanford Institute for Human-Centered AI (HAI), Stanford Robotics Center (SRC), ONR MURI N00014-22-1-2740, ONR MURI N00014-24-1-2748, and  NSF:FRR 215385.
+
+        
+
+    </p>
+
+   <h1>BibTeX</h1>
+   <p class="bibtex">@article{shao2025visualmimic,<br>
+       title={VisualMimic: Visual Humanoid Loco-Manipulation via Motion Tracking and Generation},<br>
+       author= {Shaofeng Yin and Yanjie Ze and Hong-Xing Yu and C. Karen Liu and Jiajun Wu},<br>
+       year= {2025},<br>
+       journal= {arXiv preprint arXiv:2505.XXXX}<br>
+       }
+   </p>
+
+
+    <!-- 中间 -->
+    <p style="text-align: center;">
+        Website modified from <a href="https://yanjieze.com/TWIST/">TWIST</a>.
+        <br>
+        @ 2025 <a href="https://yanjieze.com">Yanjie Ze</a>
+        <br>
+        <br>
+
+    </p>
+
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bibtex = document.querySelector('#overview > .bibtex');
+        
+        if (bibtex) {
+            bibtex.addEventListener('click', function() {
+                const text = this.innerText;
+                navigator.clipboard.writeText(text).then(
+                    function() {
+                        // Create a temporary element to show "Copied!" message
+                        const message = document.createElement('div');
+                        message.textContent = 'Copied!';
+                        message.style.position = 'fixed';
+                        message.style.top = '50%';
+                        message.style.left = '50%';
+                        message.style.transform = 'translate(-50%, -50%)';
+                        message.style.padding = '10px 20px';
+                        message.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                        message.style.color = 'white';
+                        message.style.borderRadius = '5px';
+                        message.style.zIndex = '1000';
+                        
+                        document.body.appendChild(message);
+                        
+                        // Remove the message after 2 seconds
+                        setTimeout(function() {
+                            document.body.removeChild(message);
+                        }, 2000);
+                    },
+                    function() {
+                        console.error('Failed to copy text');
+                    }
+                );
+            });
+        }
+    });
+
+    // Day/Night/Visual video mapping
+    let currentMode = 'day';
+    let visualModeEnabled = false;
+    const teaserVideos = {
+        day: 'videos/real/push_box.mp4',
+        night: 'videos/real/push_box_dusk.mp4',
+        visual: 'videos/real_vis/push_box_vis.mp4',
+        visual_night: 'videos/real_vis/push_box_dusk_vis.mp4'
+    };
+
+    // Function to get video source based on current mode
+    function getVideoForMode() {
+        if (visualModeEnabled) {
+            if (currentMode === 'night' && teaserVideos.visual_night) {
+                return teaserVideos.visual_night;
+            }
+            return teaserVideos.visual;
+        }
+        return teaserVideos[currentMode] || teaserVideos.day;
+    }
+
+    // Function to play random video
+    function playRandomVideo() {
+        const video = document.getElementById('teaserVideo');
+        const source = document.getElementById('teaserSource');
+        const spinner = document.querySelector('.loading-spinner');
+        
+        // Show spinner
+        spinner.style.display = 'block';
+        
+        source.src = getVideoForMode();
+        video.load();
+        
+        // Hide spinner when video starts playing
+        video.addEventListener('playing', function() {
+            spinner.style.display = 'none';
+        }, { once: true });
+        
+        video.play();
+    }
+
+    // Replay same mode video when ended
+    document.getElementById('teaserVideo').addEventListener('ended', playRandomVideo);
+
+    // Initial video
+    playRandomVideo();
+
+    // Handle mode toggle button (sun/moon)
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
+    const modeToggleIcon = document.getElementById('modeToggleIcon');
+    const visualToggleBtn = document.getElementById('visualToggleBtn');
+    const visualToggleIcon = document.getElementById('visualToggleIcon');
+    function updateModeToggleUI() {
+        if (!modeToggleIcon || !modeToggleBtn) return;
+        if (currentMode === 'day') {
+            modeToggleIcon.classList.remove('fa-moon');
+            modeToggleIcon.classList.add('fa-sun');
+            modeToggleBtn.title = 'Switch to Night';
+        } else {
+            modeToggleIcon.classList.remove('fa-sun');
+            modeToggleIcon.classList.add('fa-moon');
+            modeToggleBtn.title = 'Switch to Day';
+        }
+    }
+    if (modeToggleBtn) {
+        modeToggleBtn.addEventListener('click', function() {
+            currentMode = (currentMode === 'day') ? 'night' : 'day';
+            updateModeToggleUI();
+            playRandomVideo();
+        });
+        updateModeToggleUI();
+    }
+
+    function updateVisualToggleUI() {
+        if (!visualToggleIcon || !visualToggleBtn) return;
+        if (visualModeEnabled) {
+            visualToggleIcon.classList.remove('fa-eye-slash');
+            visualToggleIcon.classList.add('fa-eye');
+            visualToggleBtn.title = 'Disable Visual Overlay';
+        } else {
+            visualToggleIcon.classList.remove('fa-eye');
+            visualToggleIcon.classList.add('fa-eye-slash');
+            visualToggleBtn.title = 'Enable Visual Overlay';
+        }
+    }
+    if (visualToggleBtn) {
+        visualToggleBtn.addEventListener('click', function() {
+            visualModeEnabled = !visualModeEnabled;
+            updateVisualToggleUI();
+            playRandomVideo();
+        });
+        updateVisualToggleUI();
+    }
+
+    // Initialize Video Gallery Navigation with Auto-scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        const galleries = [
+            {
+                sectionId: 'realPushBoxGallerySection',
+                galleryInnerId: 'videoGalleryRealPushBox',
+                scrollLeftBtnId: 'scrollLeftBtnRealPushBox',
+                scrollRightBtnId: 'scrollRightBtnRealPushBox'
+            },
+            {
+                sectionId: 'realPushBoxGallerySection2',
+                galleryInnerId: 'videoGalleryRealPushBox2',
+                scrollLeftBtnId: 'scrollLeftBtnRealPushBox2',
+                scrollRightBtnId: 'scrollRightBtnRealPushBox2'
+            },
+            {
+                sectionId: 'simGallerySection',
+                galleryInnerId: 'videoGallerySim',
+                scrollLeftBtnId: 'scrollLeftBtnSim',
+                scrollRightBtnId: 'scrollRightBtnSim'
+            },
+            {
+                sectionId: 'simGallerySection2',
+                galleryInnerId: 'videoGallerySim2',
+                scrollLeftBtnId: 'scrollLeftBtnSim2',
+                scrollRightBtnId: 'scrollRightBtnSim2'
+            },
+            {
+                sectionId: 'simExtraGallerySection',
+                galleryInnerId: 'videoGallerySimExtra',
+                scrollLeftBtnId: 'scrollLeftBtnSimExtra',
+                scrollRightBtnId: 'scrollRightBtnSimExtra'
+            },
+            {
+                sectionId: 'sim2simGallerySection',
+                galleryInnerId: 'videoGallerySim2Sim',
+                scrollLeftBtnId: 'scrollLeftBtnSim2Sim',
+                scrollRightBtnId: 'scrollRightBtnSim2Sim'
+            },
+            {
+                sectionId: 'moreRealResultsGallerySection',
+                galleryInnerId: 'videoGalleryMoreRealResults',
+                scrollLeftBtnId: 'scrollLeftBtnMoreRealResults',
+                scrollRightBtnId: 'scrollRightBtnMoreRealResults'
+            }
+        ];
+
+        galleries.forEach(galleryConfig => {
+            const gallerySection = document.getElementById(galleryConfig.sectionId);
+            if (!gallerySection) {
+                console.error(`Gallery section with ID ${galleryConfig.sectionId} not found.`);
+                return;
+            }
+
+            const galleryContainer = gallerySection.querySelector('.video-gallery-container');
+            const galleryInner = document.getElementById(galleryConfig.galleryInnerId);
+            const scrollLeftBtn = document.getElementById(galleryConfig.scrollLeftBtnId);
+            const scrollRightBtn = document.getElementById(galleryConfig.scrollRightBtnId);
+
+            if (galleryContainer && galleryInner && scrollLeftBtn && scrollRightBtn) {
+                // Calculate the scroll amount based on the width of the first video + gap
+                const scrollAmount = (galleryInner.firstElementChild?.offsetWidth || 300) + 15; // 15 is the gap
+                let autoScrollInterval;
+                let isUserInteracting = false;
+
+                // Function to scroll right
+                const scrollRight = () => {
+                    const maxScroll = galleryContainer.scrollWidth - galleryContainer.clientWidth;
+                    if (galleryContainer.scrollLeft >= maxScroll - 10) {
+                        // If at the end, scroll back to beginning
+                        galleryContainer.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        galleryContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                    }
+                };
+
+                // Function to scroll left
+                const scrollLeft = () => {
+                    if (galleryContainer.scrollLeft <= 10) {
+                        // If at the beginning, scroll to end
+                        const maxScroll = galleryContainer.scrollWidth - galleryContainer.clientWidth;
+                        galleryContainer.scrollTo({ left: maxScroll, behavior: 'smooth' });
+                    } else {
+                        galleryContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                    }
+                };
+
+                // Manual navigation button handlers
+                scrollLeftBtn.addEventListener('click', () => {
+                    scrollLeft();
+                    resetAutoScroll();
+                });
+
+                scrollRightBtn.addEventListener('click', () => {
+                    scrollRight();
+                    resetAutoScroll();
+                });
+
+                // Auto-scroll functionality
+                const startAutoScroll = () => {
+                    autoScrollInterval = setInterval(() => {
+                        if (!isUserInteracting) {
+                            scrollRight();
+                        }
+                    }, 5000); // Auto-scroll every 5 seconds
+                };
+
+                const stopAutoScroll = () => {
+                    if (autoScrollInterval) {
+                        clearInterval(autoScrollInterval);
+                        autoScrollInterval = null;
+                    }
+                };
+
+                const resetAutoScroll = () => {
+                    stopAutoScroll();
+                    // Restart auto-scroll after user interaction
+                    setTimeout(() => {
+                        if (!isUserInteracting) {
+                            startAutoScroll();
+                        }
+                    }, 2000); // Wait 2 seconds before restarting
+                };
+
+                // Detect user interaction
+                galleryContainer.addEventListener('mouseenter', () => {
+                    isUserInteracting = true;
+                    stopAutoScroll();
+                });
+
+                galleryContainer.addEventListener('mouseleave', () => {
+                    isUserInteracting = false;
+                    startAutoScroll();
+                });
+
+                // Start auto-scroll initially
+                startAutoScroll();
+
+                // Pause auto-scroll when page is not visible
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        stopAutoScroll();
+                    } else if (!isUserInteracting) {
+                        startAutoScroll();
+                    }
+                });
+            } else {
+                console.error(`Gallery elements not found for navigation setup in section ${galleryConfig.sectionId}.`);
+            }
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Intersection Observer
+        const videoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const video = entry.target;
+                    // Set autoplay when video becomes visible
+                    video.autoplay = true;
+                    video.load();
+                    // Stop observing after loading
+                    videoObserver.unobserve(video);
+                }
+            });
+        }, {
+            rootMargin: '50px 0px', // Start loading when video is 50px from viewport
+            threshold: 0
+        });
+
+        // Observe all content videos
+        document.querySelectorAll('.content-video').forEach(video => {
+            videoObserver.observe(video);
+        });
+    });
+</script>
+</body>
+
+<!-- <script src="assets/js/full_screen_video.js"></script> -->
+<!-- <script src="assets/js/carousel.js"></script> -->
+</html>
